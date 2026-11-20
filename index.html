@@ -2955,11 +2955,19 @@ addEventListener('keydown',e=>{if(!window.HIDDEN_PIC)return;if(admEditing())retu
   if(hidMatch(SECRET.buf)){SECRET.on=false;SECRET.buf='';SECRET.prev='';state.hiddenPic={t:0};try{for(const k in keys)keys[k]=false;sfx('ult');}catch(err){}}},true);
 addEventListener('keyup',e=>{if(SECRET.on){e.preventDefault();e.stopImmediatePropagation();}},true);
 let CHEAT_BUF=''; // 비밀 코드: 어디서든 입력하면 해금 메뉴가 열려 원하는 업적·각성만 골라서 해금
-function cheatItems(){const L=[];for(const A of ACH)L.push({k:'ach',A,nm:A.name,sub:(skinById(A.rw[0],A.rw[1])||{}).name||'',done:()=>ACHD.pl[0].done[A.id]&&ACHD.pl[1].done[A.id]});for(const nm in AWAKEN)L.push({k:'awk',nm:'각성: '+nm,sub:AWAKEN[nm].name,id:nm,done:()=>!!INV.awk[nm]});return L;}
+function cheatItems(){const L=[];const lk=()=>(INV.lskins=INV.lskins||[]);
+  L.push({k:'all',nm:'★ 전부 해금',sub:'업적·스킨·각성 모두',done:()=>L.slice(1).every(it=>it.done())});
+  for(const A of ACH)L.push({k:'ach',A,nm:A.name,sub:(skinById(A.rw[0],A.rw[1])||{}).name||'',done:()=>ACHD.pl[0].done[A.id]&&ACHD.pl[1].done[A.id]});
+  for(const nm in SKINS)for(const sk of SKINS[nm]){if(ACH.some(A=>A.rw[0]===nm&&A.rw[1]===sk.id))continue;const gr=(SKIN_GRANT[nm]||[]).includes(sk.id);L.push({k:'skin',nm:'스킨: '+nm,sub:sk.name,id:sk.id,ch:nm,gr,done:()=>(gr||lk().includes(sk.id))&&(!WEAPONS.find(w=>w.name===nm&&w.unlock)||!!owned[nm])});}
+  for(const nm in AWAKEN)L.push({k:'awk',nm:'각성: '+nm,sub:AWAKEN[nm].name,id:nm,done:()=>!!INV.awk[nm]&&(!WEAPONS.find(w=>w.name===nm&&w.unlock)||!!owned[nm])});return L;}
+function cheatSet(it,on){const lk=()=>(INV.lskins=INV.lskins||[]);const own=nm=>{if(on&&WEAPONS.find(w=>w.name===nm&&w.unlock)&&!owned[nm]){owned[nm]=true;try{saveShop();}catch(e){}}};
+  if(it.k==='ach'){for(const P of ACHD.pl)P.done[it.A.id]=on;achSave();}
+  else if(it.k==='skin'){own(it.ch);if(!it.gr){const L=lk(),i=L.indexOf(it.id);if(on&&i<0)L.push(it.id);if(!on&&i>=0)L.splice(i,1);}invSave();}
+  else if(it.k==='awk'){own(it.id);INV.awk[it.id]=on;invSave();}}
 addEventListener('keydown',e=>{if(admEditing())return;
   if(state.cheatMenu){const M=state.cheatMenu,L=cheatItems();e.preventDefault();e.stopImmediatePropagation();
     if(e.code==='ArrowDown'||e.code==='KeyS')M.sel=(M.sel+1)%L.length;else if(e.code==='ArrowUp'||e.code==='KeyW')M.sel=(M.sel-1+L.length)%L.length;
-    else if(e.code==='Space'||e.code==='Enter'||e.code==='NumpadEnter'){const it=L[M.sel];if(it.k==='ach'){const on=!it.done();for(const P of ACHD.pl)P.done[it.A.id]=on;achSave();try{sfx(on?'win':'select');}catch(err){}}else{INV.awk[it.id]=!INV.awk[it.id];invSave();try{sfx('win');}catch(err){}}}
+    else if(e.code==='Space'||e.code==='Enter'||e.code==='NumpadEnter'){const it=L[M.sel],on=!it.done();if(it.k==='all'){for(const q of L.slice(1))cheatSet(q,on);}else cheatSet(it,on);try{sfx(on?'win':'select');}catch(err){}}
     else if(e.code==='Escape'||e.code==='Backspace'){state.cheatMenu=null;}
     return;}
   const m=/^Key([A-Z])$/.exec(e.code);if(!m)return;CHEAT_BUF=(CHEAT_BUF+m[1].toLowerCase()).slice(-20);
