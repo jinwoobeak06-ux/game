@@ -117,6 +117,45 @@ body.mob canvas{touch-action:none;width:min(100%,calc(100vh - 392px),calc(100dvh
 </div>
 
 <canvas id="c" width="720" height="720"></canvas>
+<div id="gate" role="dialog" aria-modal="true" aria-label="입장 비밀번호">
+  <div class="gbox">
+    <div class="gmsg">호근아 제발 말조심</div>
+    <div class="gsub">비밀번호를 입력해야 들어갈 수 있어요</div>
+    <form id="gform" autocomplete="off">
+      <input id="gpw" type="password" inputmode="numeric" maxlength="8" placeholder="비밀번호" aria-label="비밀번호" autocomplete="off">
+      <button type="submit">입장</button>
+    </form>
+    <div id="gerr" aria-live="polite"></div>
+  </div>
+</div>
+<style>
+#gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1c1430 0%,#0a0710 70%);font-family:Galmuri11,monospace;color:#f0e6d2;padding:16px;transition:opacity .35s}
+#gate.off{opacity:0;pointer-events:none}
+#gate .gbox{text-align:center;max-width:420px;width:100%}
+#gate .gmsg{font-size:clamp(26px,7vw,40px);color:#ff6a7a;text-shadow:3px 3px 0 #000,0 0 18px rgba(255,90,110,.45);letter-spacing:1px;line-height:1.3;animation:gpulse 1.6s ease-in-out infinite}
+#gate .gsub{margin-top:14px;font-size:13px;color:#a89cc0}
+#gate form{margin-top:22px;display:flex;gap:8px;justify-content:center}
+#gate input{width:150px;font:inherit;font-size:20px;letter-spacing:6px;text-align:center;padding:10px 12px;background:#120e1a;color:#fff;border:2px solid #5a4f6e;border-radius:0;outline:none}
+#gate input:focus{border-color:#ff9ad5}
+#gate button{font:inherit;font-size:16px;padding:10px 16px;background:#ff6a7a;color:#1a0f14;border:2px solid #000;border-radius:0;cursor:pointer;box-shadow:3px 3px 0 #000}
+#gate button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+#gerr{margin-top:12px;min-height:18px;font-size:13px;color:#ff8a7a}
+#gate.shake .gbox{animation:gshake .35s}
+@keyframes gpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes gshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+</style>
+<script>
+// 입장 비밀번호 (해시로만 비교 — 원문은 저장하지 않음)
+window.GATE_ON=true;
+(function(){const H=4132017274,g=document.getElementById('gate'),f=document.getElementById('gform'),i=document.getElementById('gpw'),er=document.getElementById('gerr');
+  const hs=s=>{let x=2166136261;for(const c of s){x^=c.charCodeAt(0);x=Math.imul(x,16777619)>>>0;}return x>>>0;};
+  const block=e=>{if(!window.GATE_ON)return;if(e.target===i)return;e.stopImmediatePropagation();if(e.type==='keydown'&&e.key&&e.key.length===1&&/\d/.test(e.key)){i.focus();}};
+  for(const t of ['keydown','keyup','keypress'])addEventListener(t,block,true);
+  i.addEventListener('keydown',e=>e.stopPropagation());i.addEventListener('keyup',e=>e.stopPropagation());
+  f.addEventListener('submit',e=>{e.preventDefault();if(hs('nemo-gate:'+i.value.trim())===H){window.GATE_ON=false;g.classList.add('off');setTimeout(()=>g.remove(),400);try{document.getElementById('c').focus();}catch(er2){}}
+    else{er.textContent='비밀번호가 틀렸어요';i.value='';g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');i.focus();}});
+  setTimeout(()=>{try{i.focus();}catch(e){}},50);})();
+</script>
 <div id="mob" hidden>
   <div id="joy"><div id="knob"></div></div>
   <div id="btns">
